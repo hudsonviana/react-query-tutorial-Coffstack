@@ -1,26 +1,13 @@
-const UserCard = ({ user, onClickEdit }) => {
-  const styles = {
-    border: '1px solid #fefefe',
-    padding: '10px',
-    margin: '20px',
-    display: 'flex',
-    borderRadius: '10px',
-  };
+import { Link } from 'react-router-dom';
+import './UserCard.css';
 
+const UserCard = ({ user }) => {
   return (
-    <div style={styles}>
+    <div className="card">
       <img src={user.avatar} />
       <div style={{ marginLeft: '15px' }}>
         <h3>{user.name}</h3>
-        <button onClick={onClickEdit} style={{ marginRight: '10px' }}>
-          Editar
-        </button>
-        {/* <button
-          onClick={onClickEdit}
-          style={{ marginRight: '10px', backgroundColor: 'rgb(194,65,12)' }}
-        >
-          Deletar
-        </button> */}
+        <Link to={`/edit/${user.id}`}>Editar</Link>
       </div>
     </div>
   );

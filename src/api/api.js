@@ -20,9 +20,14 @@ async function getUsers() {
   // return data;
 }
 
-async function updateUserName(userId, name) {
-  const res = await axios.put(`${URL}/users/${userId}`, { name: name });
+async function findUser(id) {
+  const res = await axios.get(`${URL}/users/${id}`);
   return res.data;
 }
 
-export { getUsers, updateUserName };
+async function updateUserName(id, name) {
+  const res = await axios.put(`${URL}/users/${id}`, { name: name });
+  return res.data;
+}
+
+export { getUsers, updateUserName, findUser };
