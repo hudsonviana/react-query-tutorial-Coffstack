@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
+import { Link, useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { findUser, updateUserName } from './api/api';
+import { fetchUser, findUser, updateUser, updateUserName } from './api/api';
 import './UserCard.css';
 
 const editLoader = async ({ params }) => {
@@ -10,22 +10,26 @@ const editLoader = async ({ params }) => {
 };
 
 const Edit = () => {
-  const { user } = useLoaderData();
-  const navigate = useNavigate();
-  const [name, setName] = useState(user.name);
-  const queryClient = useQueryClient();
+  // const { id } = useParams();
+  // const { data, isLoading } = fetchUser(id);
+  // console.log('use Query:', data);
+  // const user = data;
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: () => updateUserName(user.id, name),
-    onSuccess: () => navigate('/'),
-    // onSuccess: () => queryClient.invalidateQueries(['userList']),
-  });
+  const { user } = useLoaderData();
+  const [name, setName] = useState(user.name);
+  // const navigate = useNavigate();
+
+  // const queryClient = useQueryClient();
+  // const { isPending, mutate } = useMutation({
+  //   mutationFn: () => updateUserName(user.id, name),
+  //   onSuccess: () => navigate('/'),
+  //   // onSuccess: () => queryClient.invalidateQueries(['userList']),
+  // });
+
+  const updateUserMutation = updateUser(user.id, name);
 
   const handleClick = () => {
-    mutate({
-      onSuccess: queryClient.invalidateQueries(['userList']),
-      // onSuccess: navigate('/'),
-    });
+    updateUserMutation.mutate();
   };
 
   return (
