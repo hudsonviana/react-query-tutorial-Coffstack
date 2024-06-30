@@ -1,9 +1,35 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import axios from 'axios';
-import { redirect, useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 const URL = 'https://667b337fbd627f0dcc91fac2.mockapi.io';
 
 // const axiosInstance = axios.create({ baseURL: URL });
+
+export const getUsers = async () => {
+  const res = await axios.get(`${URL}/users`);
+  return res.data;
+};
+
+export const findUser = async (id) => {
+  const res = await axios.get(`${URL}/users/${id}`);
+  return res.data;
+};
+
+export const updateUserName = async (id, name) => {
+  const res = await axios.put(`${URL}/users/${id}`, { name: name });
+  return res.data;
+};
+
+export const deleteUser = async (id) => {
+  await axios.delete(`${URL}/users/${id}`);
+};
+
+// Tanstack React Query functions
 
 export const fetchAllUsers = () => {
   return useQuery({
@@ -15,47 +41,39 @@ export const fetchAllUsers = () => {
 };
 
 export const fetchUser = (id) => {
-  const { data, isLoading, isError } = useQuery({
+  return useQuery({
     queryKey: ['user', id],
     queryFn: async ({ signal }) => {
       return (await axios.get(`${URL}/users/${id}`, { signal })).data;
     },
   });
-
-  return { data, isLoading, isError };
 };
 
-async function getUsers() {
-  const res = await axios.get(`${URL}/users`);
-  const users = res.data;
-  return users;
+export const getIDs = () => {
+  return useQuery({
+    queryKey: ['allIDs'],
+    queryFn: async ({ signal }) => {
+      return (await axios.get(`${URL}/users`, { signal })).data.map(
+        (user) => user.id
+      );
+    },
+  });
+};
 
-  // const res = await axiosInstance.get('/users');
-  // return res.data;
-
-  // const res = await fetch(`${URL}/users`);
-  // const data = await res.json();
-  // return data;
-
-  // const data = fetch(`${URL}/users`)
-  //   .then((res) => res.json())
-  //   .then((data) => data);
-  // return data;
-}
-
-async function findUser(id) {
-  const res = await axios.get(`${URL}/users/${id}`);
-  return res.data;
-}
-
-async function updateUserName(id, name) {
-  const res = await axios.put(`${URL}/users/${id}`, { name: name });
-  return res.data;
-}
+export const getUsersInParallel = (ids) => {
+  return useQueries({
+    queries: (ids ?? []).map((id) => {
+      return {
+        queryKey: ['user', { id }],
+        queryFn: () => findUser(id),
+      };
+    }),
+  });
+};
 
 export const updateUser = (id, name) => {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   return useMutation({
     mutationFn: async () => {
@@ -69,11 +87,42 @@ export const updateUser = (id, name) => {
       if (error) {
         console.log('error settled');
       } else {
-        await queryClient.invalidateQueries(['allUsers']);
-        navigate('/');
+        await queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+        // navigate('/');
       }
     },
   });
 };
 
-export { getUsers, updateUserName, findUser };
+export const updateSingleUser = (id, name) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => updateUserName(id, name),
+    onSettled: async (data, error, variables) => {
+      if (error) {
+        console.log(error);
+      } else {
+        // await queryClient.invalidateQueries({ queryKey: ['allIDs'] });
+        await queryClient.invalidateQueries({
+          queryKey: ['user', { id }],
+        });
+      }
+    },
+  });
+};
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => deleteUser(id),
+    onSettled: async (data, error) => {
+      if (error) {
+        console.log(error);
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ['allIDs'] });
+      }
+    },
+  });
+};

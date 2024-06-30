@@ -1,45 +1,32 @@
-import { useState, useEffect } from 'react';
-import { fetchAllUsers, getUsers } from './api/api';
+import { useState } from 'react';
+import { fetchAllUsers, getIDs, getUsersInParallel } from './api/api';
 import UserCard from './UserCard';
-import { useQuery } from '@tanstack/react-query';
+import EditUser from './EditUser';
 
 const FetchTest = () => {
-  // const [data, setData] = useState([]);
-  // const [isLoading, setIsLoading] = useState(true);
-  // const [isError, setIsError] = useState(null);
+  const [selectedUser, setSelectedUser] = useState({ id: '', name: '' });
 
-  // useEffect(() => {
-  //   const controller = new AbortController();
-  //   async function fetchUsers() {
-  //     try {
-  //       const users = await getUsers(controller);
-  //       setData(users);
-  //     } catch (error) {
-  //       setIsError(error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   }
-  //   fetchUsers();
-  //   return () => {
-  //     controller.abort();
-  //   };
-  // }, []);
+  // const { data, isLoading, isError } = fetchAllUsers();
 
-  // const { data, isLoading, isError } = useQuery({
-  //   queryKey: ['userList'],
-  //   queryFn: async () => await getUsers(),
-  // });
-
-  const { data, isLoading, isError } = fetchAllUsers();
+  const usersIDs = getIDs();
+  const usersQueries = getUsersInParallel(usersIDs.data);
 
   return (
     <>
-      {isLoading && <h3>Carregando...</h3>}
-      {isError && <p>Ocorreu um erro ao carregar os dados da api.</p>}
+      <h2>Editar usuário</h2>
+      <EditUser selectedUser={selectedUser} />
 
-      {data?.map((user) => (
-        <UserCard key={user.id} user={user} />
+      <h2>Lista de Usuários</h2>
+
+      {/* {isLoading && <h3>Carregando...</h3>} */}
+      {/* {isError && <p>Ocorreu um erro ao carregar os dados da api.</p>} */}
+
+      {/* {data?.map((user) => (
+        <UserCard key={user.id} user={user} selectUser={setSelectedUser} />
+        ))} */}
+
+      {usersQueries.map(({ data }) => (
+        <UserCard key={data?.id} user={data} selectUser={setSelectedUser} />
       ))}
     </>
   );
@@ -54,7 +41,6 @@ const UserList = () => {
 
   return (
     <>
-      <h2>Lista de Usuários</h2>
       <button onClick={handleButton}>{!show ? 'Exibir' : 'Ocultar'}</button>
       {show && <FetchTest />}
     </>

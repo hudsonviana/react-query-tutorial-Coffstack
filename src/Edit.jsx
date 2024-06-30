@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Link, useLoaderData, useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchUser, findUser, updateUser, updateUserName } from './api/api';
+import { Link, useLoaderData } from 'react-router-dom';
+import { findUser, updateUser } from './api/api';
 import './UserCard.css';
 
 const editLoader = async ({ params }) => {
@@ -10,21 +9,8 @@ const editLoader = async ({ params }) => {
 };
 
 const Edit = () => {
-  // const { id } = useParams();
-  // const { data, isLoading } = fetchUser(id);
-  // console.log('use Query:', data);
-  // const user = data;
-
   const { user } = useLoaderData();
   const [name, setName] = useState(user.name);
-  // const navigate = useNavigate();
-
-  // const queryClient = useQueryClient();
-  // const { isPending, mutate } = useMutation({
-  //   mutationFn: () => updateUserName(user.id, name),
-  //   onSuccess: () => navigate('/'),
-  //   // onSuccess: () => queryClient.invalidateQueries(['userList']),
-  // });
 
   const updateUserMutation = updateUser(user.id, name);
 
