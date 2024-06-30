@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQueries,
   useQuery,
@@ -32,6 +33,16 @@ export const deleteUser = async (id) => {
 
 const getProjects = async (page = 1) => {
   const res = await axios.get(`${URL}/projects?page=${page}&limit=5`);
+  return res.data;
+};
+
+const getProducts = async ({ pageParam }) => {
+  const res = await axios.get(`${URL}/projects?page=${pageParam + 1}&limit=5`);
+  return res.data;
+};
+
+const getProduct = async (id) => {
+  const res = await axios.get(`${URL}/projects/${id}`);
   return res.data;
 };
 
@@ -138,5 +149,44 @@ export const useProjects = (page) => {
     queryKey: ['projects', page],
     queryFn: () => getProjects(page),
     placeholderData: keepPreviousData,
+  });
+};
+
+export const useProducts = () => {
+  return useInfiniteQuery({
+    queryKey: ['products'],
+    queryFn: getProducts,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      if (lastPage.length === 0) {
+        return undefined;
+      }
+      return lastPageParam + 1;
+    },
+    getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+      if (firstPageParam <= 1) {
+        return undefined;
+      }
+      return firstPageParam - 1;
+    },
+  });
+};
+
+export const useProduct = (id) => {
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: ['product', { id }],
+    queryFn: () => getProduct(id),
+    enabled: !!id,
+    placeholderData: () => {
+      const cachedProducts = queryClient
+        .getQueryData(['products'])
+        ?.pages?.flat(2);
+
+      if (cachedProducts) {
+        return cachedProducts.find((item) => item.id === id);
+      }
+    },
   });
 };
