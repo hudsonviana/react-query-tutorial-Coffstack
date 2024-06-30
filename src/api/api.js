@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   useMutation,
   useQueries,
   useQuery,
@@ -27,6 +28,11 @@ export const updateUserName = async (id, name) => {
 
 export const deleteUser = async (id) => {
   await axios.delete(`${URL}/users/${id}`);
+};
+
+const getProjects = async (page = 1) => {
+  const res = await axios.get(`${URL}/projects?page=${page}&limit=5`);
+  return res.data;
 };
 
 // Tanstack React Query functions
@@ -124,5 +130,13 @@ export const useDeleteUser = () => {
         await queryClient.invalidateQueries({ queryKey: ['allIDs'] });
       }
     },
+  });
+};
+
+export const useProjects = (page) => {
+  return useQuery({
+    queryKey: ['projects', page],
+    queryFn: () => getProjects(page),
+    placeholderData: keepPreviousData,
   });
 };
